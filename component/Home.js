@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Alert, Button, Text, TextInput, StyleSheet, View, SafeAreaView } from 'react-native';
+import { Alert, Button, Text, TextInput, StyleSheet, View, SafeAreaView, RefreshControl } from 'react-native';
 import Message from './Message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StatusBar } from 'expo-status-bar';
@@ -8,7 +8,6 @@ export default class Home extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      text: 'database access',
       id: '',
       name: '',
       mail: '',
@@ -21,35 +20,39 @@ export default class Home extends Component {
     this.onload = async () => {
       //全件取得
       try {
-        AsyncStorage.getAllKeys()
-          .then((keys) => {
-            var values2 = [];
-            keys.sort().forEach(key => {
-              console.log('key', key)
-              if (key === "count") { return; };
-              console.log('values', values2)
-              AsyncStorage.getItem(key.toString())
-                .then((value) => {
-                  console.log('pushまえ', values2)
-                  values2.push(value);
-                  console.log('aaa', value);
-                  this.setState({
-                    values: values2
-                  })
-                })
-            });
-          });
+        var values = [];
+        const keys = await AsyncStorage.getAllKeys();
+        keys.sort().forEach(key => async () => {
+          if (key === "count") { return };
+          const value = await AsyncStorage.getItem(key.toString());
+          AsyncStorage.getItem(key.toString())
+            .then((value) => {
+              values.push(value);
+              this.setState({
+                values: values
+              })
+            })
+        });
+
+        // AsyncStorage.getAllKeys()
+        //   .then((keys) => {
+        //     var values = [];
+        //     keys.sort().forEach(key => {
+        //       if (key === "count") { return; };
+        //       AsyncStorage.getItem(key.toString())
+        //         .then((value) => {
+        //           values.push(value);
+        //           this.setState({
+        //             values: values
+        //           })
+        //         })
+        //     });
+        //   });
       } catch (error) {
         console.log('error', error);
       }
     }
     this.onload();
-
-    // doId = 
-    this.doId = (text) => {
-      this.setState({ id: text })
-      console.log("doid:" + this.state.id);
-    };
 
     this.doName = (text) => {
       this.setState({ name: text })
@@ -64,6 +67,10 @@ export default class Home extends Component {
       this.setState({ count: text })
     };
 
+    this.doValues = (values) => {
+      this.setState({ values: values })
+    };
+
     this.doPut = async () => {
       try {
         console.log("doPut");
@@ -76,12 +83,8 @@ export default class Home extends Component {
         const nextCount = parseInt(count) + 1;
         console.log("nextCount", nextCount);
         await AsyncStorage.setItem('count', nextCount.toString());
-        this.getAllData();
-        this.setState({
-          name: ''
-        })
+        this.doName();
         // 続き：時間も一緒にPUT・表示できるようにする
-        // あとgitにpushする
         Alert.alert('put data!');
         this.onload();
       } catch (error) {
@@ -93,63 +96,13 @@ export default class Home extends Component {
     this.clearAll = async () => {
       try {
         await AsyncStorage.clear()
-        this.setState({
-          value: []
-        })
       } catch (e) {
         // clear error
       }
+      this.setState({
+        values: []
+      })
       console.log('Clear Done.')
-    }
-
-    // this.doGet = () => {
-    //   try {
-    //     AsyncStorage.getItem('MyData_' + this.state.id)
-    //       .then((data) => {
-    //         if (data !== null) {
-    //           var obj = JSON.parse(data);
-    //           this.setState({
-    //             id: obj.id,
-    //             name: obj.name,
-    //           });
-    //         } else {
-    //           Alert.alert('no data!');
-    //         }
-    //       });
-    //   } catch (error) {
-    //     console.log(error);
-    //     Alert.alert(errir);
-    //   }
-    // }
-
-    this.doGetCount = () => {
-      try {
-        AsyncStorage.getItem("count")
-          .then((item) => {
-            if (item !== null) {
-              console.log("count:", item);
-            } else {
-              console.log("not count");
-            }
-          })
-      } catch (error) {
-        console.log('error', error)
-      }
-    }
-
-    this.getAllData = () => {
-      try {
-        AsyncStorage.getAllKeys()
-          .then((keys) => {
-            console.log(keys);
-
-            // this.setState({
-            //   values: keys,
-            // })
-          });
-      } catch (error) {
-        console.log('error', error);
-      }
     }
   }
 
@@ -172,7 +125,7 @@ export default class Home extends Component {
         {/* <Button title="GET COUNT" onPress={this.doGetCount} /> */}
         <Button title="PUT DATA" onPress={this.doPut} />
         <Button title="CLEAR ALL" onPress={this.clearAll} />
-        {this.state.values.map(data => { return (<Text key={data}>{data}</Text>) })}
+        {this.state.values.map(data => { return (<Text>{data}</Text>) })}
       </SafeAreaView >
     );
   }
