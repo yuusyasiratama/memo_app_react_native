@@ -8,83 +8,55 @@ export default class Home extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      id: '',
-      name: '',
-      mail: '',
-      keys: '',
+      note: '',
       count: '',
-      values: [],
-      // sendtext: 
+      items: [],
     };
 
     this.onload = async () => {
       //全件取得
       try {
-        var values = [];
+        let values = [];
         const keys = await AsyncStorage.getAllKeys();
-        keys.sort().forEach(key => async () => {
+        console.log("kokoha?", keys);
+        keys.sort().forEach(async (key) => {
           if (key === "count") { return };
           const value = await AsyncStorage.getItem(key.toString());
-          AsyncStorage.getItem(key.toString())
-            .then((value) => {
-              values.push(value);
-              this.setState({
-                values: values
-              })
-            })
+          console.log("valueeeeeeee:", value);
+          values.push(value);
+          this.setState({ items: values })
         });
 
-        // AsyncStorage.getAllKeys()
-        //   .then((keys) => {
-        //     var values = [];
-        //     keys.sort().forEach(key => {
-        //       if (key === "count") { return; };
-        //       AsyncStorage.getItem(key.toString())
-        //         .then((value) => {
-        //           values.push(value);
-        //           this.setState({
-        //             values: values
-        //           })
-        //         })
-        //     });
-        //   });
       } catch (error) {
         console.log('error', error);
       }
     }
     this.onload();
 
-    this.doName = (text) => {
-      this.setState({ name: text })
-      console.log("doName:" + this.state.name);
+    this.doNote = (text) => {
+      this.setState({ note: text })
+      console.log("doNote:" + this.state.note);
     };
-
-    this.doKeys = (text) => {
-      this.setState({ keys: text })
-    }
 
     this.doCount = (text) => {
       this.setState({ count: text })
     };
 
-    this.doValues = (values) => {
-      this.setState({ values: values })
-    };
-
     this.doPut = async () => {
       try {
         console.log("doPut");
+        console.log(this.state.items);
         var count = await AsyncStorage.getItem('count');
         if (count == null) { count = 1; }
         console.log("count:::", count);
 
-        var data = this.state.name;
-        await AsyncStorage.setItem(count.toString(), this.state.name);
+        const note = this.state.note == null ? " " : this.state.note;
+        console.log("note::::", note);
+        await AsyncStorage.setItem(count.toString(), note);
         const nextCount = parseInt(count) + 1;
         console.log("nextCount", nextCount);
         await AsyncStorage.setItem('count', nextCount.toString());
-        this.doName();
-        // 続き：時間も一緒にPUT・表示できるようにする
+        this.doNote();
         Alert.alert('put data!');
         this.onload();
       } catch (error) {
@@ -96,6 +68,7 @@ export default class Home extends Component {
     this.clearAll = async () => {
       try {
         await AsyncStorage.clear()
+        this.setState({ items: [] })
       } catch (e) {
         // clear error
       }
@@ -116,16 +89,15 @@ export default class Home extends Component {
               borderColor: 'gray',
               borderWidth: 1,
             }}
-            placeholder='name'
-            value={this.state.name}
-            onChangeText={this.doName}
+            placeholder='note'
+            value={this.state.note}
+            onChangeText={this.doNote}
           />
         </View>
-        {/* <Button title="GET All DATA" onPress={this.doGetAll} /> */}
-        {/* <Button title="GET COUNT" onPress={this.doGetCount} /> */}
         <Button title="PUT DATA" onPress={this.doPut} />
         <Button title="CLEAR ALL" onPress={this.clearAll} />
-        {this.state.values.map(data => { return (<Text>{data}</Text>) })}
+        {this.state.items.map(data => { return (<Text>{data}</Text>) })}
+
       </SafeAreaView >
     );
   }
