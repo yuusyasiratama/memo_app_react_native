@@ -22,9 +22,14 @@ export default class Home extends Component {
         keys.sort().forEach(async (key) => {
           if (key === "count") { return };
           const value = await AsyncStorage.getItem(key.toString());
+          const json = {
+            key: key,
+            value: value,
+          }
           console.log("valueeeeeeee:", value);
-          values.push(value);
-          this.setState({ items: values })
+          values.push(json);
+          console.log("json:::::", json);
+          this.setState({ items: values });
         });
 
       } catch (error) {
@@ -51,6 +56,10 @@ export default class Home extends Component {
         console.log("count:::", count);
 
         const note = this.state.note == null ? " " : this.state.note;
+        // const putJson = {
+        //   key:count,
+        //   value:note,
+        // };
         console.log("note::::", note);
         await AsyncStorage.setItem(count.toString(), note);
         const nextCount = parseInt(count) + 1;
@@ -96,7 +105,7 @@ export default class Home extends Component {
         </View>
         <Button title="PUT DATA" onPress={this.doPut} />
         <Button title="CLEAR ALL" onPress={this.clearAll} />
-        {this.state.items.map(data => { return (<Text>{data}</Text>) })}
+        {this.state.items.map(data => { return (<Text key={data.key}>{data.value}</Text>) })}
 
       </SafeAreaView >
     );
