@@ -1,10 +1,22 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
-import React, { Component } from 'react';
-import Home from './component/Home';
+import React from 'react';
+import { View, Button } from 'react-native';
+import { createStackNavigator } from '@react-navigation/stack';
+import { NavigationContainer } from '@react-navigation/native';
 
-export default function App() {
+import Home from './components/Home';
+import EscapeGameList from './components/EscapeGameList';
+
+const Stack = createStackNavigator();
+
+const App = () => {
   return (
-    <Home />
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName="Home">
+        <Stack.Screen name="Home" component={Home} />
+        <Stack.Screen name="EscapeGameList" component={EscapeGameList} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
-}
+};
+
+export default App;
